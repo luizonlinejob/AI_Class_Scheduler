@@ -525,4 +525,5 @@ with col_r:
             pdf_bytes = generate_pdf(df)
             d2.download_button("📄 Download PDF", pdf_bytes, "sched.pdf", "application/pdf", use_container_width=True)
 
-st.markdown('<div class="custom-footer">System Stable | LRP 12|23|25</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-footer">AI Powered Class Scheduler | LRP 12|23|25</div>', unsafe_allow_html=True)
+
