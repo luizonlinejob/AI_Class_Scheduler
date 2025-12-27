@@ -463,7 +463,7 @@ with st.sidebar:
     if st.button("Clear Queue"): st.session_state.classes = []; st.rerun()
 
 # --- DASHBOARD ---
-st.markdown('<div class="header-style"><h1>📅 Stable AI Scheduler</h1></div>', unsafe_allow_html=True)
+st.markdown('<div class="header-style"><h1>📅 AI Powered Class Scheduler Developed by: LUIS PURAL</h1></div>', unsafe_allow_html=True)
 c1,c2,c3,c4 = st.columns(4)
 c1.metric("Queue", len(st.session_state.classes))
 c2.metric("Rooms", len(st.session_state.rooms))
@@ -532,3 +532,4 @@ with col_r:
             d2.download_button("📄 Download PDF", pdf_bytes, "sched.pdf", "application/pdf", use_container_width=True)
 
 st.markdown('<div class="custom-footer">System Stable | LRP 12|23|25</div>', unsafe_allow_html=True)
+
