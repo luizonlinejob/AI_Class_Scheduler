@@ -114,6 +114,17 @@ def approve_user(user_id):
         return True
     except: return False
 
+# --- NEW FUNCTION: DELETE USER ---
+def delete_user_db(user_id):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        conn.commit()
+        conn.close()
+        return True
+    except: return False
+
 init_user_db()
 
 # ==========================================
@@ -145,9 +156,14 @@ if not st.session_state.authenticated:
                 nu = st.text_input("New User")
                 np = st.text_input("New Pass", type="password")
                 if st.form_submit_button("Sign Up"):
-                    ok, m = register_user(nu, np)
-                    if ok: st.success(m)
-                    else: st.error(m)
+                    # --- UPDATED VALIDATION LOGIC ---
+                    if not nu.strip() or not np.strip():
+                        st.warning("⚠️ Please enter both a Username and a Password.")
+                    else:
+                        ok, m = register_user(nu, np)
+                        if ok: st.success(m)
+                        else: st.error(m)
+                    # --------------------------------
     st.stop()
 
 # ==========================================
@@ -377,15 +393,28 @@ with st.sidebar:
     if st.session_state.user_role == 'admin':
         st.markdown("### 👑 Admin Panel")
         
-        # 1. USER APPROVAL
+        # 1. USER APPROVAL (UPDATED)
         with st.expander("🔔 User Approvals", expanded=False):
             pend = get_pending_users()
             if pend:
                 for u in pend:
-                    c1, c2 = st.columns([3,1])
-                    c1.write(u['username'])
-                    if c2.button("✅", key=f"ok_{u['id']}"):
-                        approve_user(u['id']); st.rerun()
+                    # Create 3 columns: Username, Accept, Delete
+                    c1, c2, c3 = st.columns([2, 1, 1])
+                    c1.write(f"{u['username']}")
+                    
+                    # Accept Button
+                    if c2.button("✅", key=f"acc_{u['id']}", help="Accept User"):
+                        approve_user(u['id'])
+                        st.success(f"Approved {u['username']}")
+                        time.sleep(0.5)
+                        st.rerun()
+                    
+                    # Delete Button
+                    if c3.button("❌", key=f"del_usr_{u['id']}", help="Delete User"):
+                        delete_user_db(u['id'])
+                        st.error(f"Deleted {u['username']}")
+                        time.sleep(0.5)
+                        st.rerun()
             else: st.caption("No pending users.")
             
         # 2. MANAGE SCHEDULES (LOAD & DELETE) - ONLY VISIBLE TO ADMIN
@@ -430,7 +459,6 @@ with st.sidebar:
         with st.form("sc_f"):
             if st.form_submit_button("Add") and (ns:=st.text_input("Name")):
                 st.session_state.sections.append(ns); st.rerun()
-        # --- NEW BUTTON ADDED HERE ---
         if st.button("Clear Sections"): 
             st.session_state.sections = []
             st.rerun()
@@ -474,7 +502,7 @@ c4.metric("Saved Gens", len(gens))
 st.markdown("---")
 col_l, col_r = st.columns([1, 2.5])
 
-# --- UPDATED QUEUE DISPLAY ---
+# --- UPDATED QUEUE DISPLAY (FIXED KEY) ---
 with col_l:
     st.subheader("📋 Queue")
     if st.session_state.classes:
@@ -485,7 +513,8 @@ with col_l:
                 # Teacher and Section with icons
                 st.caption(f"👨‍🏫 {c['Teacher']} | 🎓 {c['Section']}")
                 
-                if st.button("❌ Remove", key=f"del_{i}"): 
+                # FIXED KEY: "queue_del_{i}" to avoid conflict with sidebar keys
+                if st.button("❌ Remove", key=f"queue_del_{i}"): 
                     st.session_state.classes.pop(i)
                     st.rerun()
         
@@ -531,5 +560,4 @@ with col_r:
             pdf_bytes = generate_pdf(df)
             d2.download_button("📄 Download PDF", pdf_bytes, "sched.pdf", "application/pdf", use_container_width=True)
 
-st.markdown('<div class="custom-footer">System Stable | LRP 12|23|25</div>', unsafe_allow_html=True)
-
+st.markdown('<div class="custom-footer">AI Powered Class Scheduler All Rights Reserved | LRP 12|23|25</div>', unsafe_allow_html=True)
